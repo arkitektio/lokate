@@ -1,0 +1,13 @@
+# The calling device's watermarks: its newest point, how many, and its last segment window.
+query GetSyncState {
+  syncState {
+    ...SyncState
+  }
+}
+
+# One page of everything you have, from all your devices, changed after `cursor`. Page until hasMore is false.
+query GetChanges($cursor: String, $limit: Int) {
+  changes(cursor: $cursor, limit: $limit) {
+    ...ChangeSet
+  }
+}

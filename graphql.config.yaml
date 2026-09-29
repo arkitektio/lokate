@@ -1,0 +1,73 @@
+projects:
+  
+  lokate:
+    # The SDL exported from the server tree (lokate-server's lokate_server.schema),
+    # not a running deployment: codegen has to be reproducible, and pointing at a
+    # live server generated against whatever happened to be deployed. Refresh with
+    #   cd <lokate-server> && DJANGO_SETTINGS_MODULE=lokate_server.settings_test \
+    #     uv run --no-sync python -c \
+    #     "import django; django.setup(); from lokate_server.schema import schema; print(schema)"
+    schema: schema.graphql
+    documents: graphql/**/**.graphql
+    # Documents conventions (a comment above an operation becomes its docstring, so
+    # they are kept here):
+    # - A mutation whose input has fields the server defaults spells its variables
+    #   out instead of passing an expanded `$input`: turms makes a non-null input
+    #   field required even when it has a default (kuvert's `send_message` would demand
+    #   `cc`, `bcc` and `attachments`). A nullable variable in a defaulted position
+    #   is valid GraphQL, and an unset one is never sent (exclude_unset).
+    # - Never name a variable `$task`: every method already takes `task=` (the
+    #   rekuest task a call is attributed to). A task id is `$taskId`.
+    extensions:
+      turms:
+        out_dir: lokate/api
+        exclude_typenames: true
+        dump_configuration: true
+        dump_schema: true
+        freeze:
+          enabled: true
+        options:
+          enabled: true
+          populate_by_name: true
+          alias_mode: split
+          use_enum_values: true
+          extra: forbid
+          types:
+            - input
+        stylers:
+          - type: turms.stylers.default.DefaultStyler
+          - type: turms.stylers.appender.AppenderStyler
+            append_fragment: ""
+        plugins:
+          - type: turms.plugins.enums.EnumsPlugin
+          - type: turms.plugins.inputs.InputsPlugin
+          - type: turms.plugins.fragments.FragmentsPlugin
+          - type: turms.plugins.operations.OperationsPlugin
+          - type: turms.plugins.client.ClientPlugin
+            # Every operation is a method of LokateApi, which Lokate mixes in.
+            # Each method hands its operation to execute/aexecute/subscribe/asubscribe
+            # of self, which Lokate itself implements over its rath.
+            client_class: LokateApi
+            # Every operation takes an optional `task=`: the task its request is
+            # attributed to. Omitted, the client falls back to the ambient one
+            # (`rath.task.current_task`), which is what an action gets for free.
+            global_kwargs:
+              - key: task
+                type: rath.task.TaskLike
+                description: "The task this call is made for; the ambient one by default."
+            # The client's own attributes: pydantic lets a field hide a method.
+            reserved_from:
+              - lokate.lokate.Lokate
+            coercible_scalars:
+              ID: rath.scalars.IDCoercible
+            expand_input_types:
+              - input
+        scalar_definitions:
+          uuid: str
+          Callback: str
+          Any: typing.Any
+          JSON: typing.Any
+          ID: rath.scalars.ID
+          _Any: typing.Any
+          ByteCount: int
+  

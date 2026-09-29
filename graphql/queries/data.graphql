@@ -1,0 +1,13 @@
+# Every read of your data, newest first.
+query ListAccessLog($limit: Int, $offset: Int) {
+  accessLog(limit: $limit, offset: $offset) {
+    ...AccessLogEntry
+  }
+}
+
+# How long the server keeps your points and segments.
+query GetRetention {
+  retention {
+    ...Retention
+  }
+}

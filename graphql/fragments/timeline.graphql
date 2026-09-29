@@ -1,0 +1,62 @@
+fragment Point on Point {
+  clientId
+  deviceId
+  ts
+  lat
+  lon
+  acc
+  speed
+  heading
+  alt
+}
+
+fragment Visit on Visit {
+  clientId
+  deviceId
+  start
+  end
+  lat
+  lon
+  radius
+  pointCount
+  placeClientId
+}
+
+fragment Trip on Trip {
+  clientId
+  deviceId
+  start
+  end
+  fromVisit
+  toVisit
+  distance
+  mode
+}
+
+fragment Place on Place {
+  clientId
+  name
+  lat
+  lon
+  radius
+  updatedAt
+  deletedAt
+}
+
+fragment ChangeSet on ChangeSet {
+  points {
+    ...Point
+  }
+  visits {
+    ...Visit
+  }
+  trips {
+    ...Trip
+  }
+  places {
+    ...Place
+  }
+  deletedPlaces
+  nextCursor
+  hasMore
+}

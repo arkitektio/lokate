@@ -1,0 +1,20 @@
+# Store points (at most 1000 per call). Safe to repeat: a point already stored counts as a duplicate.
+mutation UploadPoints($points: [PointInput!]!) {
+  uploadPoints(points: $points) {
+    ...UploadResult
+  }
+}
+
+# In one transaction, make this device's visits and trips starting at or after `from` exactly the ones sent.
+mutation ReplaceSegments($from: DateTime!, $visits: [VisitInput!]!, $trips: [TripInput!]!) {
+  replaceSegments(from: $from, visits: $visits, trips: $trips) {
+    ...ReplaceResult
+  }
+}
+
+# Merge places and tombstones, last write wins on updatedAt; newer server copies come back in `stale`.
+mutation MergePlaces($places: [PlaceInput!]!, $deleted: [DeletedInput!]!) {
+  syncPlaces(places: $places, deleted: $deleted) {
+    ...PlaceSyncResult
+  }
+}

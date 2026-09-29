@@ -1,0 +1,24 @@
+fragment SyncState on SyncState {
+  lastPointTs
+  pointCount
+  segmentsFrom
+}
+
+fragment UploadResult on UploadResult {
+  accepted
+  duplicates
+}
+
+fragment ReplaceResult on ReplaceResult {
+  deletedVisits
+  deletedTrips
+  visits
+  trips
+}
+
+fragment PlaceSyncResult on PlaceSyncResult {
+  applied
+  stale {
+    ...Place
+  }
+}

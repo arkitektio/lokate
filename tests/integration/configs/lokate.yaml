@@ -1,0 +1,42 @@
+postgres:
+  db_name: lokate
+  engine: django.db.backends.postgresql
+  host: db
+  password: hello_django
+  port: 5432
+  username: hello_django
+django:
+  admin:
+    email: admin@admin.com
+    password: admin
+    username: admin
+  debug: true
+  hosts:
+    - "*"
+  secret_key: 6f3c1b0f2a4e4c1d9b8e7a6d5c4b3a29
+authentikate:
+  # authentikate 4.0 requires an audience; "*" accepts a token minted for any
+  # service, which is fine for the throwaway test stack.
+  audience: "*"
+  issuers: []
+  # One user with two phones, and another user. lokate keys writes by the token's
+  # client_device claim.
+  static_tokens:
+    phone-a:
+      sub: 1
+      iss: lok
+      client_device: phone-a
+    phone-b:
+      sub: 1
+      iss: lok
+      client_device: phone-b
+    other:
+      sub: 9
+      iss: lok
+      client_device: phone-a
+redis:
+  host: redis
+  port: 6379
+scopes:
+  lokate_read: Read your backed-up location timeline
+  lokate_write: Back up your location timeline
