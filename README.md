@@ -1,6 +1,6 @@
 # lokate
 
-The python client for [lokate](https://github.com/jhnnsrs/lokate-server), the
+The python client for [lokate](https://github.com/arkitektio/lokate-server), the
 [Arkitekt](https://arkitekt.live) backup of a phone's location timeline: points,
 visits, trips and places, uploaded idempotently and restorable page by page.
 
