@@ -1,4 +1,13 @@
+fragment Device on Device {
+  id
+  deviceId
+  firstSeenAt
+  lastUploadAt
+  segmentsFrom
+}
+
 fragment Point on Point {
+  id
   clientId
   deviceId
   ts
@@ -10,7 +19,19 @@ fragment Point on Point {
   alt
 }
 
+fragment Place on Place {
+  id
+  clientId
+  name
+  lat
+  lon
+  radius
+  updatedAt
+  deletedAt
+}
+
 fragment Visit on Visit {
+  id
   clientId
   deviceId
   start
@@ -20,9 +41,11 @@ fragment Visit on Visit {
   radius
   pointCount
   placeClientId
+  duration
 }
 
 fragment Trip on Trip {
+  id
   clientId
   deviceId
   start
@@ -31,16 +54,7 @@ fragment Trip on Trip {
   toVisit
   distance
   mode
-}
-
-fragment Place on Place {
-  clientId
-  name
-  lat
-  lon
-  radius
-  updatedAt
-  deletedAt
+  duration
 }
 
 fragment ChangeSet on ChangeSet {

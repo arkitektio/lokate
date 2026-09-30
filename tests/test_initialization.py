@@ -51,8 +51,10 @@ def test_defaulted_arguments_are_optional_keywords() -> None:
     """What the server defaults, the caller may leave out."""
     for method, required in {
         Lokate.get_changes: set(),
-        Lokate.list_access_log: set(),
-        Lokate.set_retention: set(),
+        Lokate.list_points: set(),
+        Lokate.get_day: {"date"},
+        Lokate.get_route: {"since", "until"},
+        Lokate.get_stats: {"since", "until"},
         Lokate.upload_points: {"points"},
         Lokate.merge_places: {"places", "deleted"},
         Lokate.delete_server_copy: {"confirm"},

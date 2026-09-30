@@ -27,7 +27,8 @@
                 "JSON": "typing.Any",
                 "ID": "rath.scalars.ID",
                 "_Any": "typing.Any",
-                "ByteCount": "int"
+                "ByteCount": "int",
+                "Date": "datetime.date"
             },
             "coercible_scalars": {},
             "coercible_inputs": {},

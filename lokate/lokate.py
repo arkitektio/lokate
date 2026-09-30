@@ -37,8 +37,10 @@ class Lokate(Composition, LokateApi):
     ) -> dict[str, Any]:
         # lokate omits every argument that was not set (exclude_unset):
         # an optional left out stays off the wire rather than being sent as null.
+        # mode="json": dates, datetimes and enums leave as their wire form, so no link's
+        # encoder has to know them (rath's handles datetime but not a bare date).
         return operation.Arguments(**variables).model_dump(
-            by_alias=True, exclude_unset=True
+            by_alias=True, exclude_unset=True, mode="json"
         )
 
     def _headers(self, task: "TaskLike | None" = None) -> dict[str, Any] | None:

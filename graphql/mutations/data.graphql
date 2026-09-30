@@ -2,10 +2,3 @@
 mutation DeleteServerCopy($confirm: String!) {
   deleteServerCopy(confirm: $confirm)
 }
-
-# Keep your points and segments this many days (None: forever).
-mutation SetRetention($days: Int) {
-  setRetention(days: $days) {
-    ...Retention
-  }
-}

@@ -1,0 +1,17 @@
+fragment DetailDevice on Device {
+  ...Device
+  pointCount
+}
+
+fragment DetailVisit on Visit {
+  ...Visit
+  place {
+    ...Place
+  }
+}
+
+fragment DetailPlace on Place {
+  ...Place
+  visitCount
+  lastVisitAt
+}

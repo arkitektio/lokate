@@ -1,0 +1,53 @@
+fragment Day on Day {
+  date
+  start
+  end
+  visits {
+    ...DetailVisit
+  }
+  trips {
+    ...Trip
+  }
+  pointCount
+  distance
+}
+
+fragment Track on Track {
+  device {
+    ...Device
+  }
+  start
+  end
+  pointCount
+  distance
+  geojson
+}
+
+fragment ModeStat on ModeStat {
+  mode
+  trips
+  distance
+  seconds
+}
+
+fragment StatsBucket on StatsBucket {
+  start
+  pointCount
+  visitCount
+  tripCount
+  distance
+  byMode {
+    ...ModeStat
+  }
+}
+
+fragment PlaceStat on PlaceStat {
+  placeClientId
+  place {
+    ...Place
+  }
+  visitCount
+  seconds
+  firstVisitAt
+  lastVisitAt
+}

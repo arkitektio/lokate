@@ -1,0 +1,84 @@
+# Your phones (installs) that have backed up here.
+query ListDevices($filters: DeviceFilter, $pagination: OffsetPaginationInput, $ordering: [DeviceOrder!]) {
+  devices(filters: $filters, pagination: $pagination, ordering: $ordering) {
+    ...DetailDevice
+  }
+}
+
+# A device by id.
+query GetDevice($id: ID!) {
+  device(id: $id) {
+    ...DetailDevice
+  }
+}
+
+# Location fixes, filterable by time, device, map box or radius.
+query ListPoints($filters: PointFilter, $pagination: OffsetPaginationInput, $ordering: [PointOrder!]) {
+  points(filters: $filters, pagination: $pagination, ordering: $ordering) {
+    ...Point
+  }
+}
+
+# How many points match.
+query CountPoints($filters: PointFilter) {
+  pointsCount(filters: $filters)
+}
+
+# A point by id.
+query GetPoint($id: ID!) {
+  point(id: $id) {
+    ...Point
+  }
+}
+
+# Stays, filterable by time, device, place, duration, map box or radius.
+query ListVisits($filters: VisitFilter, $pagination: OffsetPaginationInput, $ordering: [VisitOrder!]) {
+  visits(filters: $filters, pagination: $pagination, ordering: $ordering) {
+    ...DetailVisit
+  }
+}
+
+# How many visits match.
+query CountVisits($filters: VisitFilter) {
+  visitsCount(filters: $filters)
+}
+
+# A visit by id.
+query GetVisit($id: ID!) {
+  visit(id: $id) {
+    ...DetailVisit
+  }
+}
+
+# Movements between visits, filterable by time, device, mode or distance.
+query ListTrips($filters: TripFilter, $pagination: OffsetPaginationInput, $ordering: [TripOrder!]) {
+  trips(filters: $filters, pagination: $pagination, ordering: $ordering) {
+    ...Trip
+  }
+}
+
+# How many trips match.
+query CountTrips($filters: TripFilter) {
+  tripsCount(filters: $filters)
+}
+
+# A trip by id.
+query GetTrip($id: ID!) {
+  trip(id: $id) {
+    ...Trip
+  }
+}
+
+# Your named places, filterable by name, map box or radius.
+query ListPlaces($filters: PlaceFilter, $pagination: OffsetPaginationInput, $ordering: [PlaceOrder!]) {
+  places(filters: $filters, pagination: $pagination, ordering: $ordering) {
+    ...DetailPlace
+  }
+}
+
+# A place by id.
+query GetPlace($id: ID!) {
+  place(id: $id) {
+    ...DetailPlace
+  }
+}

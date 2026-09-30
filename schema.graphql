@@ -1,16 +1,18 @@
-"""One read of your data."""
-type AccessLogEntry {
-  id: ID!
-  operation: String!
-  range: String!
-  rows: Int!
-  at: DateTime!
+directive @auth(required_scopes: [String!] = null, required_roles: [String!] = null, required_org_roles: [String!] = null) on FIELD_DEFINITION
 
-  """The reading token's client_device claim."""
-  deviceId: String
+directive @oneOf on INPUT_OBJECT
 
-  """The reading token's OAuth client."""
-  clientId: String
+schema @link(url: "https://specs.apollo.dev/federation/v2.11", import: ["@key"]) {
+  query: Query
+  mutation: Mutation
+}
+
+"""A lat/lon rectangle, e.g. a map viewport."""
+input BoxInput {
+  south: Float!
+  west: Float!
+  north: Float!
+  east: Float!
 }
 
 """
@@ -26,52 +28,174 @@ type ChangeSet {
   hasMore: Boolean!
 }
 
+"""Date (isoformat)"""
+scalar Date
+
 """Date with time (isoformat)"""
 scalar DateTime
+
+"""One calendar day of the timeline, across all your devices."""
+type Day {
+  date: Date!
+
+  """Midnight, in the requested time zone."""
+  start: DateTime!
+  end: DateTime!
+
+  """Visits overlapping the day, oldest first."""
+  visits: [Visit!]!
+
+  """Trips overlapping the day, oldest first."""
+  trips: [Trip!]!
+  pointCount: Int!
+
+  """Meters travelled, summed over the day's trips."""
+  distance: Float!
+}
 
 input DeletedInput {
   clientId: ID!
   deletedAt: DateTime!
 }
 
+"""One of your phones (an install): the token's client_device."""
+type Device @key(fields: "id", resolvable: true) {
+  id: ID!
+
+  """The client_device claim it uploads with."""
+  deviceId: String!
+  firstSeenAt: DateTime!
+
+  """When this device last wrote anything."""
+  lastUploadAt: DateTime
+
+  """The `from` of its last replaceSegments."""
+  segmentsFrom: DateTime
+
+  """How many points it has uploaded."""
+  pointCount: Int!
+}
+
+"""
+One phone (install) of a user: the ``client_device`` claim of its token.
+
+Keyed by user as well, so two accounts on one phone never share rows. A reinstall that
+is issued a new device id is a new ``Device``; its old one's history stays readable
+through ``changes``.
+"""
+input DeviceFilter {
+  AND: DeviceFilter
+  OR: DeviceFilter
+  NOT: DeviceFilter
+  DISTINCT: Boolean
+  ids: [ID!]
+}
+
+input DeviceOrder @oneOf {
+  firstSeenAt: Ordering
+  lastUploadAt: Ordering
+}
+
+"""The width of a stats bucket."""
+enum Granularity {
+  DAY
+  WEEK
+  MONTH
+}
+
+"""Trips of one mode within a stats bucket."""
+type ModeStat {
+  mode: TripMode!
+  trips: Int!
+
+  """Meters."""
+  distance: Float!
+  seconds: Float!
+}
+
 type Mutation {
   """
   Store points (at most 1000 per call). Safe to repeat: a point already stored counts as a duplicate.
   """
-  uploadPoints(points: [PointInput!]!): UploadResult!
+  uploadPoints(points: [PointInput!]!): UploadResult! @auth(required_scopes: null, required_roles: null, required_org_roles: null)
 
   """
   In one transaction, make this device's visits and trips starting at or after `from` exactly the ones sent.
   """
-  replaceSegments(from: DateTime!, visits: [VisitInput!]!, trips: [TripInput!]!): ReplaceResult!
+  replaceSegments(from: DateTime!, visits: [VisitInput!]!, trips: [TripInput!]!): ReplaceResult! @auth(required_scopes: null, required_roles: null, required_org_roles: null)
 
   """
   Merge places and tombstones, last write wins on updatedAt; newer server copies come back in `stale`.
   """
-  syncPlaces(places: [PlaceInput!]!, deleted: [DeletedInput!]!): PlaceSyncResult!
+  syncPlaces(places: [PlaceInput!]!, deleted: [DeletedInput!]!): PlaceSyncResult! @auth(required_scopes: null, required_roles: null, required_org_roles: null)
 
   """
   Delete all of your data on this server (confirm = "DELETE"). Returns how many points, visits, trips and places were deleted.
   """
-  deleteServerCopy(confirm: String!): Int!
-
-  """
-  Keep your points and segments this many days (null: forever). Older ones are deleted now and on every later upload.
-  """
-  setRetention(days: Int = null): Retention!
+  deleteServerCopy(confirm: String!): Int! @auth(required_scopes: null, required_roles: null, required_org_roles: null)
 }
 
-"""
-A named place, shared by all of a user's phones. A tombstone has deletedAt set and nothing else but its key.
-"""
-type Place {
+"""Within `radius` meters of a point."""
+input NearInput {
+  lat: Float!
+  lon: Float!
+  radius: Float!
+}
+
+input OffsetPaginationInput {
+  offset: Int! = 0
+  limit: Int
+}
+
+enum Ordering {
+  ASC
+  ASC_NULLS_FIRST
+  ASC_NULLS_LAST
+  DESC
+  DESC_NULLS_FIRST
+  DESC_NULLS_LAST
+}
+
+"""A named place, shared by all of your phones."""
+type Place @key(fields: "id", resolvable: true) {
+  id: ID!
   clientId: ID!
   name: String
   lat: Float
   lon: Float
+
+  """Meters."""
   radius: Float
+
+  """The phone's edit time; last write wins on it."""
   updatedAt: DateTime!
+
+  """Set on a tombstone (only ever seen in syncPlaces' `stale`)."""
   deletedAt: DateTime
+
+  """How many visits were matched to it."""
+  visitCount: Int!
+
+  """When the latest visit to it ended."""
+  lastVisitAt: DateTime
+}
+
+"""
+A named place, shared by all of a user's phones (so keyed by user, not device).
+
+Last write wins on ``updated_at``. A deleted place stays as a tombstone (``deleted_at``
+set) so another phone's older copy is not uploaded again. A tombstone can arrive for a
+place the server never saw, so everything but the key and the stamps is nullable.
+"""
+input PlaceFilter {
+  AND: PlaceFilter
+  OR: PlaceFilter
+  NOT: PlaceFilter
+  DISTINCT: Boolean
+  ids: [ID!]
+  search: String
+  inBox: BoxInput
+  near: NearInput
 }
 
 input PlaceInput {
@@ -81,6 +205,23 @@ input PlaceInput {
   lon: Float!
   radius: Float!
   updatedAt: DateTime!
+}
+
+input PlaceOrder @oneOf {
+  name: Ordering
+  updatedAt: Ordering
+}
+
+"""Time spent at one place."""
+type PlaceStat {
+  placeClientId: ID!
+
+  """None if the place was deleted."""
+  place: Place
+  visitCount: Int!
+  seconds: Float!
+  firstVisitAt: DateTime!
+  lastVisitAt: DateTime!
 }
 
 type PlaceSyncResult {
@@ -93,18 +234,44 @@ type PlaceSyncResult {
 }
 
 """One location fix."""
-type Point {
+type Point @key(fields: "id", resolvable: true) {
+  id: ID!
   clientId: ID!
-
-  """The device (token client_device) that recorded it."""
-  deviceId: ID!
+  device: Device!
   ts: DateTime!
   lat: Float!
   lon: Float!
+
+  """Horizontal accuracy, meters."""
   acc: Float
+
+  """Meters per second."""
   speed: Float
+
+  """Degrees from north."""
   heading: Float
+
+  """Altitude, meters."""
   alt: Float
+
+  """The client_device of the device that recorded it."""
+  deviceId: ID!
+}
+
+"""
+One location fix. Partitioned by month of ``ts`` (see the module docstring).
+"""
+input PointFilter {
+  AND: PointFilter
+  OR: PointFilter
+  NOT: PointFilter
+  DISTINCT: Boolean
+  devices: [ID!]
+  since: DateTime
+  until: DateTime
+  inBox: BoxInput
+  near: NearInput
+  maxAccuracy: Float
 }
 
 input PointInput {
@@ -118,22 +285,88 @@ input PointInput {
   alt: Float = null
 }
 
+input PointOrder @oneOf {
+  ts: Ordering
+}
+
 type Query {
+  _entities(representations: [_Any!]!): [_Entity]!
   _service: _Service!
 
+  """Your phones (installs) that have backed up here."""
+  devices(filters: DeviceFilter, ordering: [DeviceOrder!]! = [], pagination: OffsetPaginationInput): [Device!]! @auth(required_scopes: null, required_roles: null, required_org_roles: null)
+
+  """A device by id."""
+  device(id: ID!): Device! @auth(required_scopes: null, required_roles: null, required_org_roles: null)
+
+  """
+  Location fixes (paginated, filterable by time, device, box or distance).
+  """
+  points(filters: PointFilter, ordering: [PointOrder!]! = [], pagination: OffsetPaginationInput): [Point!]! @auth(required_scopes: null, required_roles: null, required_org_roles: null)
+
+  """How many points match (the same filters as `points`)."""
+  pointsCount(filters: PointFilter = null): Int! @auth(required_scopes: null, required_roles: null, required_org_roles: null)
+
+  """A point by id."""
+  point(id: ID!): Point! @auth(required_scopes: null, required_roles: null, required_org_roles: null)
+
+  """Stays (paginated, filterable by time, device, place, box or distance)."""
+  visits(filters: VisitFilter, ordering: [VisitOrder!]! = [], pagination: OffsetPaginationInput): [Visit!]! @auth(required_scopes: null, required_roles: null, required_org_roles: null)
+
+  """How many visits match (the same filters as `visits`)."""
+  visitsCount(filters: VisitFilter = null): Int! @auth(required_scopes: null, required_roles: null, required_org_roles: null)
+
+  """A visit by id."""
+  visit(id: ID!): Visit! @auth(required_scopes: null, required_roles: null, required_org_roles: null)
+
+  """
+  Movements between visits (paginated, filterable by time, device, mode or distance).
+  """
+  trips(filters: TripFilter, ordering: [TripOrder!]! = [], pagination: OffsetPaginationInput): [Trip!]! @auth(required_scopes: null, required_roles: null, required_org_roles: null)
+
+  """How many trips match (the same filters as `trips`)."""
+  tripsCount(filters: TripFilter = null): Int! @auth(required_scopes: null, required_roles: null, required_org_roles: null)
+
+  """A trip by id."""
+  trip(id: ID!): Trip! @auth(required_scopes: null, required_roles: null, required_org_roles: null)
+
+  """Your named places (paginated, filterable by name, box or distance)."""
+  places(filters: PlaceFilter, ordering: [PlaceOrder!]! = [], pagination: OffsetPaginationInput): [Place!]! @auth(required_scopes: null, required_roles: null, required_org_roles: null)
+
+  """A place by id."""
+  place(id: ID!): Place! @auth(required_scopes: null, required_roles: null, required_org_roles: null)
+
+  """
+  One calendar day (in `timezone`, IANA name): its visits and trips in order, and totals.
+  """
+  day(date: Date!, timezone: String = "UTC"): Day! @auth(required_scopes: null, required_roles: null, required_org_roles: null)
+
+  """Your path between `since` and `until`, one GeoJSON line per device."""
+  route(
+    since: DateTime!
+    until: DateTime!
+    devices: [ID!] = null
+
+    """Tolerance in meters for thinning the line (none: every point)."""
+    simplify: Float = null
+
+    """Leave out fixes less accurate than this (meters)."""
+    maxAccuracy: Float = null
+  ): [Track!]! @auth(required_scopes: null, required_roles: null, required_org_roles: null)
+
+  """Points, visits, trips and distance per day, week or month."""
+  stats(since: DateTime!, until: DateTime!, granularity: Granularity = DAY, timezone: String = "UTC"): [StatsBucket!]! @auth(required_scopes: null, required_roles: null, required_org_roles: null)
+
+  """Time spent per place, most first."""
+  placeStats(since: DateTime = null, until: DateTime = null, limit: Int = 100): [PlaceStat!]! @auth(required_scopes: null, required_roles: null, required_org_roles: null)
+
   """The calling device's watermarks."""
-  syncState: SyncState!
+  syncState: SyncState! @auth(required_scopes: null, required_roles: null, required_org_roles: null)
 
   """
-  Everything of the user's, from all their devices, changed after `cursor`, oldest first (limit at most 1000). Page until hasMore is false; used to restore.
+  Everything of yours, from all your devices, changed after `cursor`, oldest first (limit at most 1000). Page until hasMore is false; used to restore.
   """
-  changes(cursor: String = null, limit: Int = 1000): ChangeSet!
-
-  """Every read of your data, newest first."""
-  accessLog(limit: Int = 100, offset: Int = 0): [AccessLogEntry!]!
-
-  """How long the server keeps your points and segments."""
-  retention: Retention!
+  changes(cursor: String = null, limit: Int = 1000): ChangeSet! @auth(required_scopes: null, required_roles: null, required_org_roles: null)
 }
 
 type ReplaceResult {
@@ -143,10 +376,16 @@ type ReplaceResult {
   trips: Int!
 }
 
-"""How long the server keeps your points and segments."""
-type Retention {
-  """Null: forever."""
-  days: Int
+"""Totals for one day, week or month."""
+type StatsBucket {
+  start: DateTime!
+  pointCount: Int!
+  visitCount: Int!
+  tripCount: Int!
+
+  """Meters, over all trips."""
+  distance: Float!
+  byMode: [ModeStat!]!
 }
 
 """The calling device's watermarks."""
@@ -158,16 +397,58 @@ type SyncState {
   segmentsFrom: DateTime
 }
 
-"""A movement between two visits."""
-type Trip {
-  clientId: ID!
-  deviceId: ID!
+"""One device's points over a time range, joined into a line."""
+type Track {
+  device: Device!
   start: DateTime!
   end: DateTime!
-  fromVisit: ID
-  toVisit: ID
+  pointCount: Int!
+
+  """Geodesic length of the (unsimplified) line, meters."""
   distance: Float!
+
+  """A GeoJSON LineString (coordinates are [lon, lat])."""
+  geojson: String!
+}
+
+"""A movement between two visits."""
+type Trip @key(fields: "id", resolvable: true) {
+  id: ID!
+  clientId: ID!
+  device: Device!
+  start: DateTime!
+  end: DateTime!
+
+  """The clientId of the visit it left."""
+  fromVisit: ID
+
+  """The clientId of the visit it arrived at."""
+  toVisit: ID
+
+  """Meters."""
+  distance: Float!
+
+  """The client_device of the device that recorded it."""
+  deviceId: ID!
+
+  """How it was travelled."""
   mode: TripMode!
+
+  """How long it took, seconds."""
+  duration: Float!
+}
+
+"""A movement between two visits, as the phone segmented it."""
+input TripFilter {
+  AND: TripFilter
+  OR: TripFilter
+  NOT: TripFilter
+  DISTINCT: Boolean
+  devices: [ID!]
+  since: DateTime
+  until: DateTime
+  modes: [TripMode!]
+  minDistance: Float
 }
 
 input TripInput {
@@ -188,22 +469,57 @@ enum TripMode {
   UNKNOWN
 }
 
+input TripOrder @oneOf {
+  start: Ordering
+  distance: Ordering
+}
+
 type UploadResult {
   accepted: Int!
   duplicates: Int!
 }
 
 """A stay at one spot."""
-type Visit {
+type Visit @key(fields: "id", resolvable: true) {
+  id: ID!
   clientId: ID!
-  deviceId: ID!
+  device: Device!
   start: DateTime!
   end: DateTime!
   lat: Float!
   lon: Float!
+
+  """Meters."""
   radius: Float!
   pointCount: Int!
+
+  """The clientId of the place it was matched to."""
   placeClientId: ID
+
+  """The client_device of the device that recorded it."""
+  deviceId: ID!
+
+  """How long it lasted, seconds."""
+  duration: Float!
+
+  """The place it was matched to (none if deleted or unmatched)."""
+  place: Place
+}
+
+"""A stay at one spot, as the phone segmented it."""
+input VisitFilter {
+  AND: VisitFilter
+  OR: VisitFilter
+  NOT: VisitFilter
+  DISTINCT: Boolean
+  devices: [ID!]
+  since: DateTime
+  until: DateTime
+  places: [ID!]
+  hasPlace: Boolean
+  minDuration: Float
+  inBox: BoxInput
+  near: NearInput
 }
 
 input VisitInput {
@@ -217,7 +533,14 @@ input VisitInput {
   placeClientId: ID = null
 }
 
+input VisitOrder @oneOf {
+  start: Ordering
+  end: Ordering
+}
+
 scalar _Any
+
+union _Entity = Device | Place | Point | Trip | Visit
 
 type _Service {
   sdl: String!

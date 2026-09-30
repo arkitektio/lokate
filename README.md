@@ -74,7 +74,31 @@ with lokate:
     print(result.accepted, result.duplicates)
 ```
 
-What the protocol guarantees:
+### Reading the timeline
+
+Everything is readable back, and only ever your own rows, from all of your devices:
+
+```python
+import datetime
+from lokate.api.schema import Granularity, PointFilter
+
+day = lokate.get_day(date=datetime.date(2026, 9, 30), timezone="Europe/Vienna")
+for visit in day.visits:
+    print(visit.start, visit.place.name if visit.place else "?", visit.duration)
+
+since = datetime.datetime(2026, 9, 1, tzinfo=datetime.UTC)
+until = datetime.datetime(2026, 10, 1, tzinfo=datetime.UTC)
+tracks = lokate.get_route(since=since, until=until, simplify=10)   # GeoJSON per device
+stats = lokate.get_stats(since=since, until=until, granularity=Granularity.WEEK)
+points = lokate.list_points(filters=PointFilter(since=since, near={"lat": 48.2, "lon": 16.37, "radius": 500}))
+```
+
+`list_devices`, `list_points`, `list_visits`, `list_trips`, `list_places` take
+`filters`, `pagination` and `ordering`; `count_*` and `get_*(id)` go with them.
+`get_place_stats` gives the time spent per place.
+
+## The backup protocol
+
 
 - **Every write can be retried.** `upload_points` counts points it already has as
   `duplicates`. `replace_segments(from_=...)` and `merge_places` leave unchanged

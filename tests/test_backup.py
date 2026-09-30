@@ -115,22 +115,12 @@ def test_restore_pulls_every_device_and_no_other_user(deployed_app: DeployedLoka
     assert mine == {f"{tag}-a-{i}" for i in range(120)} | {f"{tag}-b-{i}" for i in range(70)}
 
 
-def test_access_log_and_delete_server_copy(deployed_app: DeployedLokate) -> None:
+def test_delete_server_copy(deployed_app: DeployedLokate) -> None:
     other = deployed_app.other
     other.upload_points(points(unique(), 5))
-    other.get_sync_state()
-    assert other.list_access_log()[0].operation == "syncState"
-
     with pytest.raises(Exception, match="DELETE"):
         other.delete_server_copy("yes")
     assert other.delete_server_copy("DELETE") >= 5
     assert other.get_sync_state().point_count == 0
     # The first user's data is untouched.
     assert deployed_app.phone_a.get_sync_state().point_count > 0
-
-
-def test_retention(deployed_app: DeployedLokate) -> None:
-    other = deployed_app.other
-    assert other.set_retention(days=3650).days == 3650
-    assert other.get_retention().days == 3650
-    assert other.set_retention(days=None).days is None

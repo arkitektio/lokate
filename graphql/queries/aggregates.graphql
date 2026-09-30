@@ -1,0 +1,27 @@
+# One calendar day (in `timezone`, an IANA name): its visits and trips in order, and totals.
+query GetDay($date: Date!, $timezone: String) {
+  day(date: $date, timezone: $timezone) {
+    ...Day
+  }
+}
+
+# Your path between `since` and `until`: one GeoJSON LineString per device.
+query GetRoute($since: DateTime!, $until: DateTime!, $devices: [ID!], $simplify: Float, $maxAccuracy: Float) {
+  route(since: $since, until: $until, devices: $devices, simplify: $simplify, maxAccuracy: $maxAccuracy) {
+    ...Track
+  }
+}
+
+# Points, visits, trips and distance per day, week or month.
+query GetStats($since: DateTime!, $until: DateTime!, $granularity: Granularity, $timezone: String) {
+  stats(since: $since, until: $until, granularity: $granularity, timezone: $timezone) {
+    ...StatsBucket
+  }
+}
+
+# Time spent per place, most first.
+query GetPlaceStats($since: DateTime, $until: DateTime, $limit: Int) {
+  placeStats(since: $since, until: $until, limit: $limit) {
+    ...PlaceStat
+  }
+}

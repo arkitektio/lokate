@@ -70,4 +70,5 @@ projects:
           ID: rath.scalars.ID
           _Any: typing.Any
           ByteCount: int
+          Date: datetime.date
   
