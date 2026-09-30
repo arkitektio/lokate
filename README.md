@@ -101,8 +101,8 @@ uv run pytest -m "not integration"   # no server needed
 uv run pytest -m integration          # a real lokate + postgres/PostGIS via dokker
 ```
 
-Until the server's first image is published, the integration suite needs a
-gitignored `tests/integration/docker-compose.local.yml` that builds
-`jhnnsrs/lokate` from a local lokate-server checkout.
+The integration suite runs `jhnnsrs/lokate:${LOKATE_SERVICE_TAG:-latest}`. To test
+unreleased server changes, add a gitignored `tests/integration/docker-compose.local.yml`
+that builds the image from a local lokate-server checkout.
 
 See [RELEASING.md](RELEASING.md) for how versions are cut.
