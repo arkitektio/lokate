@@ -10,12 +10,25 @@ services:
       POSTGRES_MULTIPLE_DATABASES: lokate
       POSTGRES_PASSWORD: hello_django
       POSTGRES_USER: hello_django
-  lokate:
+  # Brings the database to the image's release, once, before the server is started: a
+  # service's own start only serves.
+  lokate-migrate:
     depends_on:
-    - redis
     - db
     image: jhnnsrs/lokate:${LOKATE_SERVICE_TAG:-latest}
-    command: bash run-debug.sh
+    command: arkitekt-service run migrate
+    volumes:
+    - ./configs/lokate.yaml:/workspace/config.yaml
+  lokate:
+    depends_on:
+      redis:
+        condition: service_started
+      db:
+        condition: service_started
+      lokate-migrate:
+        condition: service_completed_successfully
+    image: jhnnsrs/lokate:${LOKATE_SERVICE_TAG:-latest}
+    command: arkitekt-service debug
     stop_grace_period: 1s
     ports:
     - "${LOKATE_HOST_PORT:-6895}:80"
