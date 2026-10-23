@@ -53,10 +53,12 @@ def lokate(
                     left=AIOHttpLink(
                         endpoint_url=lokate.to_http_path("graphql"),
                         proxy=lokate.proxy,
+                        ssl_context=lokate.ssl_context(),
                     ),
                     right=GraphQLWSLink(
                         ws_endpoint_url=lokate.to_ws_path("graphql"),
                         proxy=lokate.proxy,
+                        ssl_context=lokate.ssl_context(),
                     ),
                     split=lambda o: o.node.operation != OperationType.SUBSCRIPTION,
                 ),
