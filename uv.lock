@@ -165,6 +165,23 @@ wheels = [
 ]
 
 [[package]]
+name = "arkitekt-spec"
+version = "5.0.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "certifi" },
+    { name = "docstring-parser" },
+    { name = "fieldz" },
+    { name = "inflection" },
+    { name = "pydantic" },
+    { name = "pyyaml" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/8f/96/68a6beaa8c1bf6441fca516cc505e90e496b32faa75479b31d638ab2e604/arkitekt_spec-5.0.0.tar.gz", hash = "sha256:ff82962f5962fa85a9082ea282747c7756122d3040ada8a6af90e17560d519cc", size = 336437, upload-time = "2026-10-28T13:42:57.649Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d1/b6/eae75fdd420150ffe3e2db736a84e84160f263f46e11eb3195b0e70df55c/arkitekt_spec-5.0.0-py3-none-any.whl", hash = "sha256:a8b0a9d072be325bee163be4d9aa32215f0bb67ddf89208c0f4757bae6f2e152", size = 388895, upload-time = "2026-10-28T13:42:56.543Z" },
+]
+
+[[package]]
 name = "attrs"
 version = "26.1.0"
 source = { registry = "https://pypi.org/simple" }
@@ -503,6 +520,15 @@ wheels = [
 ]
 
 [[package]]
+name = "docstring-parser"
+version = "0.18.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/e0/4d/f332313098c1de1b2d2ff91cf2674415cc7cddab2ca1b01ae29774bd5fdf/docstring_parser-0.18.0.tar.gz", hash = "sha256:292510982205c12b1248696f44959db3cdd1740237a968ea1e2e7a900eeb2015", size = 29341, upload-time = "2026-04-14T04:09:19.867Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a7/5f/ed01f9a3cdffbd5a008556fc7b2a08ddb1cc6ace7effa7340604b1d16699/docstring_parser-0.18.0-py3-none-any.whl", hash = "sha256:b3fcbed555c47d8479be0796ef7e19c2670d428d72e96da63f3a40122860374b", size = 22484, upload-time = "2026-04-14T04:09:18.638Z" },
+]
+
+[[package]]
 name = "dokker"
 version = "2.8.0"
 source = { registry = "https://pypi.org/simple" }
@@ -524,6 +550,18 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/6a/ab/88d67f02024700b48cd8232579ad1316aa9df2272c63049c27cc094229d6/dotty_dict-1.3.1.tar.gz", hash = "sha256:4b016e03b8ae265539757a53eba24b9bfda506fb94fbce0bee843c6f05541a15", size = 7699, upload-time = "2022-07-09T18:50:57.727Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/1a/91/e0d457ee03ec33d79ee2cd8d212debb1bc21dfb99728ae35efdb5832dc22/dotty_dict-1.3.1-py3-none-any.whl", hash = "sha256:5022d234d9922f13aa711b4950372a06a6d64cb6d6db9ba43d0ba133ebfce31f", size = 7014, upload-time = "2022-07-09T18:50:55.058Z" },
+]
+
+[[package]]
+name = "fieldz"
+version = "0.2.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/f8/46/7a8d1db959eabd5d3e52bd3c000a8b132184b7651cbd5481c4cbf31ff65d/fieldz-0.2.0.tar.gz", hash = "sha256:e11215188cad5c5371113d2b7707155960efd0d48500b6bf675648bc3f6fc8d6", size = 18222, upload-time = "2026-02-24T19:26:02.251Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/fe/9d/9034acaf3d80e85deb3d49876cb734479327b9cf89a918815ef67cb6b36c/fieldz-0.2.0-py3-none-any.whl", hash = "sha256:43b5be702816df39f55d08ae392eaabe58d3c69d2e4b61a853252cb2da41931f", size = 17946, upload-time = "2026-02-24T19:26:00.931Z" },
 ]
 
 [[package]]
@@ -674,6 +712,15 @@ wheels = [
 ]
 
 [[package]]
+name = "inflection"
+version = "0.5.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/e1/7e/691d061b7329bc8d54edbf0ec22fbfb2afe61facb681f9aaa9bff7a27d04/inflection-0.5.1.tar.gz", hash = "sha256:1a29730d366e996aaacffb2f1f1cb9593dc38e2ddd30c91250c6dde09ea9b417", size = 15091, upload-time = "2020-08-22T08:16:29.139Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/59/91/aa6bde563e0085a02a435aa99b49ef75b0a4b062635e606dab23ce18d720/inflection-0.5.1-py2.py3-none-any.whl", hash = "sha256:f38b2b640938a4f35ade69ac3d053042959b62a0f1076a5bbaa1b9526605a8a2", size = 9454, upload-time = "2020-08-22T08:16:27.816Z" },
+]
+
+[[package]]
 name = "iniconfig"
 version = "2.3.0"
 source = { registry = "https://pypi.org/simple" }
@@ -711,6 +758,7 @@ name = "lokate"
 source = { editable = "." }
 dependencies = [
     { name = "aiohttp" },
+    { name = "arkitekt-spec" },
     { name = "koil" },
     { name = "rath" },
     { name = "websockets" },
@@ -732,6 +780,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "aiohttp", specifier = ">=3.9.5,<4" },
+    { name = "arkitekt-spec", specifier = ">=5.0" },
     { name = "koil", specifier = ">=1.0.0" },
     { name = "rath", specifier = ">=4.1.1" },
     { name = "websockets", specifier = ">=15.0.1" },
@@ -747,7 +796,7 @@ dev = [
     { name = "pytest-cov", specifier = ">=5.0.0,<6" },
     { name = "python-semantic-release", specifier = ">=9.21.1" },
     { name = "ruff", specifier = ">0.11" },
-    { name = "turms", specifier = ">=2.3.0" },
+    { name = "turms", specifier = ">=3.0" },
 ]
 
 [[package]]
@@ -1638,7 +1687,7 @@ wheels = [
 
 [[package]]
 name = "turms"
-version = "2.3.0"
+version = "3.0.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "graphql-core" },
@@ -1650,9 +1699,9 @@ dependencies = [
     { name = "rich-click" },
     { name = "watchfiles" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/65/95/3d7fd47b08dd050a8932dee105a194a13f3b38e9d074153e0b0c02ac9edd/turms-2.3.0.tar.gz", hash = "sha256:e39b50bf26674796f5a4570fd668da05fafc45f06be0ec56f10ec421425822a6", size = 100001, upload-time = "2026-10-19T15:05:52.709Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/c8/ad/0956f3cec2ceec1ea1de45dd5c28866ac3ac712d37f54f782630ea9d7460/turms-3.0.0.tar.gz", hash = "sha256:fe7a4c100514632c25c2f31f5dc7ec072c0f62eafa0dd01bbcca832db7fb3b6d", size = 105709, upload-time = "2026-10-28T13:43:11.296Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/8e/4c/5fcd142e43a98061b245ed330bc6d4a0fe6662a93adb3fadc0a89124647e/turms-2.3.0-py3-none-any.whl", hash = "sha256:d2269c099522e12612bf825c8dfc63bce603349874bed3506a630a0fcd513bd9", size = 118880, upload-time = "2026-10-19T15:05:51.169Z" },
+    { url = "https://files.pythonhosted.org/packages/5f/eb/af193832cadfe2c4d3dbc211b28d717b9d8f6730b91f4cdef657b4ee3ccc/turms-3.0.0-py3-none-any.whl", hash = "sha256:eca048c111a6c077aafbbaa478acdd4791cb69644239b83d3d5b4100ce752cf6", size = 125360, upload-time = "2026-10-28T13:43:10.207Z" },
 ]
 
 [[package]]
