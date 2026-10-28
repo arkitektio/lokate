@@ -10,12 +10,14 @@ dependencies = [
     "koil>=1.0.0",
     "rath>=4.1.1",
     "websockets>=15.0.1",
+    # The service is declared with arkitekt-spec (4.1: a service's scopes).
+    "arkitekt-spec>=4.1",
 ]
 
 [project.optional-dependencies]
 # The arkitekt integration (lokate.arkitekt) has no extra of its own: arkitekt
-# depends on lokate and brings fakts/rekuest itself -- the guarded import in
-# __init__ lights up when it is installed alongside.
+# depends on lokate and brings fakts itself -- the guarded import in __init__
+# lights up when it is installed alongside.
 
 
 [tool.uv]

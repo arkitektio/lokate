@@ -69,6 +69,7 @@
             "external_modules": [],
             "additional_bases": {},
             "additional_config": {},
+            "directive_class_vars": [],
             "force_plugin_order": true,
             "omitted_document_rules": [],
             "parsers": [],
@@ -104,6 +105,9 @@
                     "expand_input_types": [
                         "input"
                     ]
+                },
+                {
+                    "type": "turms.plugins.scopes.ScopesPlugin"
                 }
             ],
             "processors": [],

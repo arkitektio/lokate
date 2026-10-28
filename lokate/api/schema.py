@@ -1747,6 +1747,7 @@ Returns:
         variables: dict[str, builtins.object] = {}
         variables['id'] = id
         return self.execute(GetPlaceQuery, variables, task=task).place
+SCOPES: list[str] = ['lokate_read', 'lokate_write']
 DeviceFilter.model_rebuild()
 PlaceFilter.model_rebuild()
 PointFilter.model_rebuild()
