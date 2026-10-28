@@ -17,7 +17,6 @@ from rath.links.split import SplitLink
 from arkitekt_spec.declare.app import AppRegistry
 
 from graphql import OperationType
-from lokate.api.schema import SCOPES
 from lokate.lokate import Lokate
 from lokate.rath import LokateRath
 
@@ -34,9 +33,6 @@ registry = AppRegistry()
 @registry.service(
     schema=build_relative_path("api", "schema.graphql"),
     turms=build_relative_path("api", "project.json"),
-    # What the client's operations need at lokate, as turms gathered it from the schema: every
-    # app using lokate asks for it.
-    scopes=SCOPES,
 )
 def lokate(
     lokate: Annotated[
