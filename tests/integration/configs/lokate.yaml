@@ -25,14 +25,23 @@ authentikate:
     phone-a:
       sub: 1
       iss: lok
+      # lokate asks every root field for a scope and every write for a role.
+      scope: openid lokate_all
+      roles: [lokate_admin]
       client_device: phone-a
     phone-b:
       sub: 1
       iss: lok
+      # lokate asks every root field for a scope and every write for a role.
+      scope: openid lokate_all
+      roles: [lokate_admin]
       client_device: phone-b
     other:
       sub: 9
       iss: lok
+      # lokate asks every root field for a scope and every write for a role.
+      scope: openid lokate_all
+      roles: [lokate_admin]
       client_device: phone-a
 redis:
   host: redis
