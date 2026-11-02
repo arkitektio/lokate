@@ -15,7 +15,7 @@ from tests.conftest import DeployedLokate
 
 pytestmark = pytest.mark.integration
 
-T0 = datetime.datetime(2026, 8, 30, 12, 0, tzinfo=datetime.timezone.utc)
+T0 = datetime.datetime(2026, 8, 30, 12, 0, tzinfo=datetime.UTC)
 
 
 def at(minutes: float) -> datetime.datetime:

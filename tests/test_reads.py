@@ -11,7 +11,7 @@ from tests.conftest import DeployedLokate
 
 pytestmark = pytest.mark.integration
 
-UTC = datetime.timezone.utc
+UTC = datetime.UTC
 
 
 def test_reads(deployed_app: DeployedLokate) -> None:

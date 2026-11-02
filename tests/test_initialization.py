@@ -19,7 +19,7 @@ from lokate.api.schema import (
 )
 from lokate.lokate import Lokate
 
-T = datetime.datetime(2026, 9, 1, 12, tzinfo=datetime.timezone.utc)
+T = datetime.datetime(2026, 9, 1, 12, tzinfo=datetime.UTC)
 
 
 def test_lokate_importable() -> None:
