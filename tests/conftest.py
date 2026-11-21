@@ -5,6 +5,7 @@ from collections.abc import Generator
 from dataclasses import dataclass
 
 import pytest
+from arkitekt_spec.declare.tested import record_tested
 from dokker import Deployment, testing
 from dokker.log_watcher import LogWatcher
 from rath.links.aiohttp import AIOHttpLink
@@ -162,6 +163,8 @@ def deployed_app(
 
         setup.up()
         setup.check_health()
+        # What a release of this client then says it was tested against.
+        record_tested("lokate", http_url.rsplit("/graphql", 1)[0] + "/ht")
 
         phone_a = client(http_url, ws_url, "phone-a")
         phone_b = client(http_url, ws_url, "phone-b")

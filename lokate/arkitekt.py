@@ -8,13 +8,14 @@ own client ids, never sent between actions by id. An app takes the service in wi
 import os
 from typing import Annotated
 
+from arkitekt_spec.declare.app import AppRegistry
+from arkitekt_spec.declare.tested import tested_against
 from fakts import Alias, Require, TokenLoader
 from fakts.contrib.rath.auth import FaktsAuthLink
 from rath.links.aiohttp import AIOHttpLink
 from rath.links.compose import compose
 from rath.links.graphql_ws import GraphQLWSLink
 from rath.links.split import SplitLink
-from arkitekt_spec.declare.app import AppRegistry
 
 from graphql import OperationType
 from lokate.lokate import Lokate
@@ -30,6 +31,10 @@ registry = AppRegistry()
 """What lokate brings to an app: its service."""
 
 
+TESTED = tested_against("lokate")
+"""The lokate server this release wants: the one its release job tested it against."""
+
+
 @registry.service(
     schema=build_relative_path("api", "schema.graphql"),
     turms=build_relative_path("api", "project.json"),
@@ -39,7 +44,7 @@ def lokate(
         Alias,
         Require(
             "live.arkitekt.lokate",
-            "Where the backed-up location timeline is kept",
+            "Where the backed-up location timeline is kept", version=TESTED,
         ),
     ],
     tokens: TokenLoader,

@@ -11,7 +11,7 @@ dependencies = [
     "rath>=4.1.1",
     "websockets>=15.0.1",
     # The service is declared with arkitekt-spec (4.1: a service's scopes).
-    "arkitekt-spec>=5.0",
+    "arkitekt-spec>=12.9",
 ]
 
 [project.optional-dependencies]
@@ -38,11 +38,15 @@ include = ["lokate"]
 exclude = ["**/__pycache__", "tests"]
 typeCheckingMode = "standard"
 
+# `_tested.json` is written by the integration tests (the server version they ran against)
+# and is not in git: named as an artifact, on both, it is shipped all the same.
 [tool.hatch.build.targets.sdist]
 include = ["lokate"]
+artifacts = ["lokate/_tested.json"]
 
 [tool.hatch.build.targets.wheel]
 include = ["lokate"]
+artifacts = ["lokate/_tested.json"]
 
 
 [tool.ruff.lint]
