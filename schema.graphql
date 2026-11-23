@@ -1,10 +1,26 @@
 directive @auth(required_scopes: [String!], required_roles: [String!], required_org_roles: [String!], any_scope_of: [String!], any_role_of: [String!], any_org_role_of: [String!], allow_scoped: Boolean) on FIELD_DEFINITION
 
+directive @identified(by: String!) on OBJECT
+
 directive @oneOf on INPUT_OBJECT
 
 schema @link(url: "https://specs.apollo.dev/federation/v2.11", import: ["@key"]) {
   query: Query
   mutation: Mutation
+}
+
+"""Objects to put in a collaboration at once: all of them, or none"""
+input AddManyToCollaborationInput {
+  """The collaboration's key (lok's)"""
+  collaboration: ID!
+
+  """What to put in; a whole before its parts"""
+  objects: [CollaborationObjectRef!]!
+
+  """
+  The collaboration's name, kept here when these are the first things put in
+  """
+  name: String = null
 }
 
 """A lat/lon rectangle, e.g. a map viewport."""
@@ -26,6 +42,87 @@ type ChangeSet {
   deletedPlaces: [ID!]!
   nextCursor: String
   hasMore: Boolean!
+}
+
+"""
+What a guest granted it sees of the organization: the objects put in it, and what is part of them.
+"""
+type Collaboration {
+  id: ID!
+  name: String!
+  description: String
+  createdAt: DateTime!
+
+  """
+  The collaboration's key across the hub: what lok grants, and what names it in every service
+  """
+  key: ID!
+
+  """
+  What is in the collaboration, oldest first; what is part of these is in it too. `brought` keeps what was put in by hand (false) or only what came along with it (true)
+  """
+  items(brought: Boolean = null, pagination: OffsetPaginationInput = null): [CollaborationItem!]!
+
+  """
+  How many objects are in the collaboration: all of them, or (`brought`) only those put in by hand (false) or only those that came along with one (true)
+  """
+  itemCount(brought: Boolean = null): Int!
+}
+
+"""
+One object in a collaboration: put there, or brought along with one that needs it to be seen.
+"""
+type CollaborationItem {
+  id: ID!
+
+  """The object's id, in its structure"""
+  objectId: String!
+  addedAt: DateTime!
+
+  """The structure the object is known by across the hub: @mikro/scene"""
+  identifier: String
+
+  """
+  Whether it is in the collaboration only as what another object in it needs to be seen
+  """
+  brought: Boolean!
+}
+
+"""An object to put in, or take out of, a collaboration"""
+input CollaborationObjectInput {
+  """The collaboration's key (lok's)"""
+  collaboration: ID!
+
+  """The structure the object is known by: @mikro/scene"""
+  identifier: String!
+
+  """The object's id"""
+  object: ID!
+
+  """
+  The collaboration's name, kept here when this is the first thing put in
+  """
+  name: String = null
+}
+
+"""An object, by its structure and id"""
+input CollaborationObjectRef {
+  """The structure the object is known by: @mikro/scene"""
+  identifier: String!
+
+  """The object's id"""
+  object: ID!
+}
+
+"""
+How many collaborations the organization has (a guest: theirs), and how much is in them
+"""
+type CollaborationStats {
+  """How many collaborations"""
+  count: Int!
+
+  """How many objects are in them altogether, brought along ones included"""
+  itemCount: Int!
 }
 
 """Date (isoformat)"""
@@ -133,6 +230,31 @@ type Mutation {
   Delete all of your data on this server (confirm = "DELETE"). Returns how many points, visits, trips and places were deleted.
   """
   deleteServerCopy(confirm: String!): Int! @auth(required_scopes: ["lokate_write"], any_role_of: ["lokate_editor"])
+
+  """
+  Put one of your visits (with the place it was matched to), trips or places in a collaboration (lok's, by its key) for its guests to read. Never a location fix or a device. The first thing put in makes lokate's row of the collaboration.
+  """
+  addToCollaboration(input: CollaborationObjectInput!): Collaboration! @auth(required_scopes: ["lokate_share"], any_role_of: ["lokate_editor"])
+
+  """
+  Put several of your visits, trips or places in a collaboration at once; all or none.
+  """
+  addManyToCollaboration(input: AddManyToCollaborationInput!): Collaboration! @auth(required_scopes: ["lokate_share"], any_role_of: ["lokate_editor"])
+
+  """
+  Put what a workflow (its root task) created in lokate in a collaboration. A timeline is backed up by phones, not made by workflows: every structure is reported unknown and nothing is put in.
+  """
+  shareWorkflow(input: ShareWorkflowInput!): WorkflowShare! @auth(required_scopes: ["lokate_share"], any_role_of: ["lokate_editor"])
+
+  """
+  Take a visit, trip or place out of a collaboration, with what it brought that nothing else there needs.
+  """
+  removeFromCollaboration(input: CollaborationObjectInput!): Collaboration! @auth(required_scopes: ["lokate_share"], any_role_of: ["lokate_editor"])
+
+  """
+  Take everything lokate holds in a collaboration (by its key) out of it: its guests read none of it here any more. lok's collaboration and its grants stay.
+  """
+  deleteCollaboration(key: ID!): ID! @auth(required_scopes: ["lokate_share"], any_role_of: ["lokate_editor"])
 }
 
 """Within `radius` meters of a point."""
@@ -157,7 +279,7 @@ enum Ordering {
 }
 
 """A named place, shared by all of your phones."""
-type Place @key(fields: "id", resolvable: true) {
+type Place @key(fields: "id", resolvable: true) @identified(by: "@lokate/place") {
   id: ID!
   clientId: ID!
   name: String
@@ -188,6 +310,13 @@ set) so another phone's older copy is not uploaded again. A tombstone can arrive
 place the server never saw, so everything but the key and the stamps is nullable.
 """
 input PlaceFilter {
+  """
+  Only what is in this collaboration (its key): put in, or part of what was
+  """
+  inCollaboration: ID
+
+  """Only what the workflow (its root task id) created"""
+  createdUnder: ID
   AND: PlaceFilter
   OR: PlaceFilter
   NOT: PlaceFilter
@@ -231,6 +360,11 @@ type PlaceSyncResult {
   Places whose server copy is newer; the phone takes them (deletedAt set: delete it).
   """
   stale: [Place!]!
+
+  """
+  The server's copy of every place sent, after the merge (ones a tombstone kept deleted left out).
+  """
+  places: [Place!]!
 }
 
 """One location fix."""
@@ -292,6 +426,19 @@ input PointOrder @oneOf {
 type Query {
   _entities(representations: [_Any!]!): [_Entity]!
   _service: _Service!
+
+  """
+  The organization's collaborations lokate holds visits, trips or places in (a guest: the ones granted to them).
+  """
+  collaborations(pagination: OffsetPaginationInput = null): [Collaboration!]! @auth(required_scopes: ["lokate_read"])
+
+  """What lokate holds in a collaboration, by its key (lok's)."""
+  collaboration(key: ID!): Collaboration! @auth(required_scopes: ["lokate_read"])
+
+  """
+  Count the collaborations `collaborations` lists, and the objects in them.
+  """
+  collaborationsStats: CollaborationStats! @auth(required_scopes: ["lokate_read"])
 
   """Your phones (installs) that have backed up here."""
   devices(filters: DeviceFilter, ordering: [DeviceOrder!]! = [], pagination: OffsetPaginationInput): [Device!]! @auth(required_scopes: ["lokate_read"])
@@ -376,6 +523,51 @@ type ReplaceResult {
   trips: Int!
 }
 
+"""Put what a workflow created in a collaboration, as it is now"""
+input ShareWorkflowInput {
+  """The collaboration's key (lok's)"""
+  collaboration: ID!
+
+  """
+  The workflow: the id of the task a person started, the root of every task it caused
+  """
+  rootTask: ID!
+
+  """Only say what would be put in, and what left out"""
+  dryRun: Boolean! = false
+
+  """The collaboration's name, kept here when this puts the first things in"""
+  name: String = null
+}
+
+"""An object, by its structure and id"""
+type SharedObject {
+  """The structure the object is known by: @mikro/scene"""
+  identifier: String
+
+  """The object's id"""
+  object: ID!
+}
+
+"""
+Created in the workflow, but part of something made before it that is not shared: left out
+"""
+type SkippedObject {
+  """The structure the object is known by"""
+  identifier: String
+
+  """The object's id"""
+  object: ID!
+
+  """The structure of what it is part of"""
+  wholeIdentifier: String
+
+  """
+  The id of what it is part of: put that in, and share the workflow again, to bring it
+  """
+  whole: ID!
+}
+
 """Totals for one day, week or month."""
 type StatsBucket {
   start: DateTime!
@@ -412,7 +604,7 @@ type Track {
 }
 
 """A movement between two visits."""
-type Trip @key(fields: "id", resolvable: true) {
+type Trip @key(fields: "id", resolvable: true) @identified(by: "@lokate/trip") {
   id: ID!
   clientId: ID!
   device: Device!
@@ -440,6 +632,13 @@ type Trip @key(fields: "id", resolvable: true) {
 
 """A movement between two visits, as the phone segmented it."""
 input TripFilter {
+  """
+  Only what is in this collaboration (its key): put in, or part of what was
+  """
+  inCollaboration: ID
+
+  """Only what the workflow (its root task id) created"""
+  createdUnder: ID
   AND: TripFilter
   OR: TripFilter
   NOT: TripFilter
@@ -480,7 +679,7 @@ type UploadResult {
 }
 
 """A stay at one spot."""
-type Visit @key(fields: "id", resolvable: true) {
+type Visit @key(fields: "id", resolvable: true) @identified(by: "@lokate/visit") {
   id: ID!
   clientId: ID!
   device: Device!
@@ -508,6 +707,13 @@ type Visit @key(fields: "id", resolvable: true) {
 
 """A stay at one spot, as the phone segmented it."""
 input VisitFilter {
+  """
+  Only what is in this collaboration (its key): put in, or part of what was
+  """
+  inCollaboration: ID
+
+  """Only what the workflow (its root task id) created"""
+  createdUnder: ID
   AND: VisitFilter
   OR: VisitFilter
   NOT: VisitFilter
@@ -536,6 +742,33 @@ input VisitInput {
 input VisitOrder @oneOf {
   start: Ordering
   end: Ordering
+}
+
+"""
+What sharing a workflow put in a collaboration here (or, tried, would put in)
+"""
+type WorkflowShare {
+  """The collaboration's key"""
+  collaboration: ID!
+
+  """Whether nothing was written"""
+  dryRun: Boolean!
+
+  """Put in, with what each needs to be seen"""
+  added: [SharedObject!]!
+
+  """
+  How many parts came along with their whole, without being put in themselves
+  """
+  covered: Int!
+
+  """Left out: parts of something made before the workflow and not shared"""
+  skipped: [SkippedObject!]!
+
+  """
+  Structures here that cannot say what created their objects: not looked at
+  """
+  unknown: [String!]!
 }
 
 scalar _Any
