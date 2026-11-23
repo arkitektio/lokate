@@ -30,13 +30,35 @@ def test_lokate_importable() -> None:
 def test_inputs_speak_the_wire_names() -> None:
     """Python names in, GraphQL names out; unset optionals stay off the wire."""
     point = PointInput(client_id="p1", ts=T, lat=48.2, lon=16.37)
-    assert point.model_dump(by_alias=True, exclude_unset=True) == {"clientId": "p1", "ts": T, "lat": 48.2, "lon": 16.37}
-    visit = VisitInput(client_id="v1", start=T, end=T, lat=1.0, lon=2.0, radius=50.0, point_count=3)
+    assert point.model_dump(by_alias=True, exclude_unset=True) == {
+        "clientId": "p1",
+        "ts": T,
+        "lat": 48.2,
+        "lon": 16.37,
+    }
+    visit = VisitInput(
+        client_id="v1", start=T, end=T, lat=1.0, lon=2.0, radius=50.0, point_count=3
+    )
     assert visit.model_dump(by_alias=True, exclude_unset=True)["pointCount"] == 3
-    trip = TripInput(client_id="t1", start=T, end=T, distance=10.0, mode=TripMode.WALK, from_visit="v1")
+    trip = TripInput(
+        client_id="t1",
+        start=T,
+        end=T,
+        distance=10.0,
+        mode=TripMode.WALK,
+        from_visit="v1",
+    )
     assert trip.model_dump(by_alias=True, exclude_unset=True)["fromVisit"] == "v1"
-    assert PlaceInput(client_id="home", name="Home", lat=1.0, lon=2.0, radius=80.0, updated_at=T).model_dump(by_alias=True)["updatedAt"] == T
-    assert DeletedInput(client_id="gym", deleted_at=T).model_dump(by_alias=True) == {"clientId": "gym", "deletedAt": T}
+    assert (
+        PlaceInput(
+            client_id="home", name="Home", lat=1.0, lon=2.0, radius=80.0, updated_at=T
+        ).model_dump(by_alias=True)["updatedAt"]
+        == T
+    )
+    assert DeletedInput(client_id="gym", deleted_at=T).model_dump(by_alias=True) == {
+        "clientId": "gym",
+        "deletedAt": T,
+    }
 
 
 def test_from_is_a_python_name_and_the_wire_name() -> None:
@@ -60,7 +82,9 @@ def test_defaulted_arguments_are_optional_keywords() -> None:
         Lokate.delete_server_copy: {"confirm"},
     }.items():
         parameters = inspect.signature(method).parameters.values()
-        assert {p.name for p in parameters if p.default is inspect.Parameter.empty} - {"self"} == required, method
+        assert {p.name for p in parameters if p.default is inspect.Parameter.empty} - {
+            "self"
+        } == required, method
 
 
 def test_every_method_takes_the_task_kwarg() -> None:

@@ -9,7 +9,14 @@ import uuid
 
 import pytest
 
-from lokate.api.schema import DeletedInput, PlaceInput, PointInput, TripInput, TripMode, VisitInput
+from lokate.api.schema import (
+    DeletedInput,
+    PlaceInput,
+    PointInput,
+    TripInput,
+    TripMode,
+    VisitInput,
+)
 from lokate.lokate import Lokate
 from tests.conftest import DeployedLokate
 
@@ -27,10 +34,17 @@ def unique() -> str:
 
 
 def points(prefix: str, n: int) -> list[PointInput]:
-    return [PointInput(client_id=f"{prefix}-{i}", ts=at(i), lat=48.2 + i * 1e-4, lon=16.37, acc=5.0) for i in range(n)]
+    return [
+        PointInput(
+            client_id=f"{prefix}-{i}", ts=at(i), lat=48.2 + i * 1e-4, lon=16.37, acc=5.0
+        )
+        for i in range(n)
+    ]
 
 
-def all_changes(lokate: Lokate) -> tuple[set[str], set[str], set[str], set[str], set[str]]:
+def all_changes(
+    lokate: Lokate,
+) -> tuple[set[str], set[str], set[str], set[str], set[str]]:
     """Page ``changes`` to the end; every client id seen, per kind. Nothing may arrive twice."""
     seen: list[set] = [set(), set(), set(), set(), set()]
     cursor = None
@@ -68,8 +82,27 @@ def test_batches_over_1000_are_refused(lokate: Lokate) -> None:
 def test_replace_segments_is_per_device(deployed_app: DeployedLokate) -> None:
     tag = unique()
     start = at(60 * 24 * 30)  # a window of its own
-    visits = [VisitInput(client_id=f"{tag}-v1", start=start, end=start + datetime.timedelta(minutes=10), lat=48.2, lon=16.37, radius=40.0, point_count=12)]
-    trips = [TripInput(client_id=f"{tag}-t1", start=start + datetime.timedelta(minutes=10), end=start + datetime.timedelta(minutes=20), distance=900.0, mode=TripMode.BIKE, from_visit=f"{tag}-v1")]
+    visits = [
+        VisitInput(
+            client_id=f"{tag}-v1",
+            start=start,
+            end=start + datetime.timedelta(minutes=10),
+            lat=48.2,
+            lon=16.37,
+            radius=40.0,
+            point_count=12,
+        )
+    ]
+    trips = [
+        TripInput(
+            client_id=f"{tag}-t1",
+            start=start + datetime.timedelta(minutes=10),
+            end=start + datetime.timedelta(minutes=20),
+            distance=900.0,
+            mode=TripMode.BIKE,
+            from_visit=f"{tag}-v1",
+        )
+    ]
 
     deployed_app.phone_a.replace_segments(from_=start, visits=visits, trips=trips)
     deployed_app.phone_b.replace_segments(from_=start, visits=visits, trips=[])
@@ -90,11 +123,51 @@ def test_places_last_write_wins_and_tombstones(deployed_app: DeployedLokate) -> 
     home, gym = f"home-{unique()}", f"gym-{unique()}"
     a, b = deployed_app.phone_a, deployed_app.phone_b
 
-    a.merge_places(places=[PlaceInput(client_id=home, name="Home", lat=1.0, lon=2.0, radius=80.0, updated_at=at(10)), PlaceInput(client_id=gym, name="Gym", lat=1.0, lon=2.0, radius=80.0, updated_at=at(10))], deleted=[])
+    a.merge_places(
+        places=[
+            PlaceInput(
+                client_id=home,
+                name="Home",
+                lat=1.0,
+                lon=2.0,
+                radius=80.0,
+                updated_at=at(10),
+            ),
+            PlaceInput(
+                client_id=gym,
+                name="Gym",
+                lat=1.0,
+                lon=2.0,
+                radius=80.0,
+                updated_at=at(10),
+            ),
+        ],
+        deleted=[],
+    )
     a.merge_places(places=[], deleted=[DeletedInput(client_id=gym, deleted_at=at(20))])
 
     # Phone B holds older copies of both: the newer server copy (and the tombstone) come back.
-    result = b.merge_places(places=[PlaceInput(client_id=home, name="Old", lat=1.0, lon=2.0, radius=80.0, updated_at=at(5)), PlaceInput(client_id=gym, name="Gym", lat=1.0, lon=2.0, radius=80.0, updated_at=at(15))], deleted=[])
+    result = b.merge_places(
+        places=[
+            PlaceInput(
+                client_id=home,
+                name="Old",
+                lat=1.0,
+                lon=2.0,
+                radius=80.0,
+                updated_at=at(5),
+            ),
+            PlaceInput(
+                client_id=gym,
+                name="Gym",
+                lat=1.0,
+                lon=2.0,
+                radius=80.0,
+                updated_at=at(15),
+            ),
+        ],
+        deleted=[],
+    )
     assert result.applied == 0
     stale = {p.client_id: p for p in result.stale}
     assert stale[home].name == "Home" and stale[home].deleted_at is None
@@ -104,7 +177,9 @@ def test_places_last_write_wins_and_tombstones(deployed_app: DeployedLokate) -> 
     assert home in place_ids and gym in deleted_ids
 
 
-def test_restore_pulls_every_device_and_no_other_user(deployed_app: DeployedLokate) -> None:
+def test_restore_pulls_every_device_and_no_other_user(
+    deployed_app: DeployedLokate,
+) -> None:
     tag = unique()
     deployed_app.phone_a.upload_points(points(f"{tag}-a", 120))
     deployed_app.phone_b.upload_points(points(f"{tag}-b", 70))
@@ -112,7 +187,9 @@ def test_restore_pulls_every_device_and_no_other_user(deployed_app: DeployedLoka
 
     point_ids, *_ = all_changes(deployed_app.phone_b)
     mine = {i for i in point_ids if i.startswith(tag)}
-    assert mine == {f"{tag}-a-{i}" for i in range(120)} | {f"{tag}-b-{i}" for i in range(70)}
+    assert mine == {f"{tag}-a-{i}" for i in range(120)} | {
+        f"{tag}-b-{i}" for i in range(70)
+    }
 
 
 def test_delete_server_copy(deployed_app: DeployedLokate) -> None:

@@ -68,9 +68,16 @@ from lokate.rath import LokateRath
 lokate = Lokate(rath=LokateRath(link=...))
 
 with lokate:
-    result = lokate.upload_points([
-        PointInput(client_id="fix-1", ts=datetime.datetime.now(datetime.UTC), lat=48.2, lon=16.37),
-    ])
+    result = lokate.upload_points(
+        [
+            PointInput(
+                client_id="fix-1",
+                ts=datetime.datetime.now(datetime.UTC),
+                lat=48.2,
+                lon=16.37,
+            ),
+        ]
+    )
     print(result.accepted, result.duplicates)
 ```
 
@@ -88,9 +95,11 @@ for visit in day.visits:
 
 since = datetime.datetime(2026, 9, 1, tzinfo=datetime.UTC)
 until = datetime.datetime(2026, 10, 1, tzinfo=datetime.UTC)
-tracks = lokate.get_route(since=since, until=until, simplify=10)   # GeoJSON per device
+tracks = lokate.get_route(since=since, until=until, simplify=10)  # GeoJSON per device
 stats = lokate.get_stats(since=since, until=until, granularity=Granularity.WEEK)
-points = lokate.list_points(filters=PointFilter(since=since, near={"lat": 48.2, "lon": 16.37, "radius": 500}))
+points = lokate.list_points(
+    filters=PointFilter(since=since, near={"lat": 48.2, "lon": 16.37, "radius": 500})
+)
 ```
 
 `list_devices`, `list_points`, `list_visits`, `list_trips`, `list_places` take

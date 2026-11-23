@@ -44,7 +44,8 @@ def lokate(
         Alias,
         Require(
             "live.arkitekt.lokate",
-            "Where the backed-up location timeline is kept", version=TESTED,
+            "Where the backed-up location timeline is kept",
+            version=TESTED,
         ),
     ],
     tokens: TokenLoader,

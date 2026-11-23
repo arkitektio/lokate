@@ -102,7 +102,9 @@ def client(http_url: str, ws_url: str, token: str) -> Lokate:
         rath=LokateRath(
             link=compose(
                 TimeoutLink(timeout=12),
-                ComposedAuthLink(token_loader=token_loader, token_refresher=token_loader),
+                ComposedAuthLink(
+                    token_loader=token_loader, token_refresher=token_loader
+                ),
                 SplitLink(
                     left=AIOHttpLink(endpoint_url=http_url),
                     right=GraphQLWSLink(ws_endpoint_url=ws_url),
