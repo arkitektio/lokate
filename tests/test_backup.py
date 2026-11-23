@@ -57,7 +57,7 @@ def all_changes(
             [(None, p.client_id) for p in page.places],
             [(None, c) for c in page.deleted_places],
         )
-        for bucket, keys in zip(seen, keyed):
+        for bucket, keys in zip(seen, keyed, strict=True):
             for key in keys:
                 assert key not in bucket, f"{key} delivered twice"
                 bucket.add(key)

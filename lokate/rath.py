@@ -1,4 +1,5 @@
 from types import TracebackType
+from typing import TypeVar
 
 from pydantic import Field
 from rath import rath
@@ -16,6 +17,9 @@ class LokateLinkComposition(TypedComposedLink):
     split: SplitLink
 
 
+LokateRathT = TypeVar("LokateRathT", bound="LokateRath")
+
+
 class LokateRath(rath.Rath):
     """Lokate Rath
 
@@ -23,7 +27,7 @@ class LokateRath(rath.Rath):
     :class:`lokate.lokate.Lokate` client; calls go through that client.
     """
 
-    async def __aenter__(self):
+    async def __aenter__(self: LokateRathT) -> LokateRathT:
         """Enter the client.
 
         Entering does not make it "the current client": nothing is. Calls go
