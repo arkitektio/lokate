@@ -553,6 +553,22 @@ wheels = [
 ]
 
 [[package]]
+name = "fakts"
+version = "6.8.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "aiohttp" },
+    { name = "arkitekt-spec" },
+    { name = "certifi" },
+    { name = "koil" },
+    { name = "pydantic" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/eb/f6/05a6a8dac7067baba335fa3086e1ef6da49778a39dfbf3a8e1289eeab567/fakts-6.8.2.tar.gz", hash = "sha256:aef7be0bf8b08d31834b753ddea18d4362552e73dbb25269e4d76e68211410c8", size = 115829, upload-time = "2026-11-22T21:06:06.745Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/68/39/3bb188f59e7fe815d95c4706a50ecc85add6ab80f9309ebc1adfa422cef4/fakts-6.8.2-py3-none-any.whl", hash = "sha256:3f9e0aad7ba3818c3fd235a9d587a016feaa8004a5748b8944ee983816f7fd0f", size = 122647, upload-time = "2026-11-22T21:06:05.732Z" },
+]
+
+[[package]]
 name = "fieldz"
 version = "0.2.0"
 source = { registry = "https://pypi.org/simple" }
@@ -768,6 +784,7 @@ dependencies = [
 dev = [
     { name = "basedpyright" },
     { name = "dokker" },
+    { name = "fakts" },
     { name = "pytest" },
     { name = "pytest-aiohttp" },
     { name = "pytest-asyncio" },
@@ -790,6 +807,7 @@ requires-dist = [
 dev = [
     { name = "basedpyright", specifier = "==1.40.2" },
     { name = "dokker", specifier = ">=2.8" },
+    { name = "fakts", specifier = ">=6.8" },
     { name = "pytest", specifier = ">=8.3.5" },
     { name = "pytest-aiohttp", specifier = ">=1.0.5,<2" },
     { name = "pytest-asyncio", specifier = ">=0.26.0" },

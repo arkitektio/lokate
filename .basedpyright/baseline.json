@@ -1,33 +1,5 @@
 {
     "files": {
-        "./lokate/__init__.py": [
-            {
-                "code": "reportMissingImports",
-                "range": {
-                    "startColumn": 15,
-                    "endColumn": 22,
-                    "lineCount": 1
-                }
-            }
-        ],
-        "./lokate/arkitekt.py": [
-            {
-                "code": "reportMissingImports",
-                "range": {
-                    "startColumn": 5,
-                    "endColumn": 10,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportMissingImports",
-                "range": {
-                    "startColumn": 5,
-                    "endColumn": 28,
-                    "lineCount": 1
-                }
-            }
-        ],
         "./lokate/lokate.py": [
             {
                 "code": "reportAttributeAccessIssue",

@@ -21,6 +21,8 @@ dependencies = [
 [dependency-groups]
 dev = [
     "dokker>=2.8",
+    # The binder builds its links with fakts, which an app brings: here for the type check.
+    "fakts>=6.8",
     "pytest>=8.3.5",
     "pytest-asyncio>=0.26.0",
     "pytest-aiohttp>=1.0.5,<2",
