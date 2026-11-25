@@ -18,14 +18,13 @@ writes by its device (`client_device` claim).
 
 ### In an arkitekt app
 
-The client is injected by annotation. Add the service to your app and ask for
-`lokate: Lokate`:
+The client is injected by annotation: ask for `lokate: Lokate`.
 
 ```python
 from arkitekt import App, run
-from lokate import Lokate, lokate_service
+from lokate import Lokate
 
-app = App("where-was-i", "0.1.0", services=[lokate_service])
+app = App("where-was-i", "0.1.0")
 
 
 @app.action
@@ -47,10 +46,10 @@ if __name__ == "__main__":
 ### From a script
 
 ```python
-from arkitekt import easy
-from lokate import lokate_service
+from arkitekt import connect
+from lokate import Lokate
 
-with easy("my-script", lokate_service) as lokate:
+with connect(Lokate) as lokate:
     state = lokate.get_sync_state()
     print(state.point_count, state.last_point_ts)
 ```

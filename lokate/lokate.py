@@ -1,8 +1,12 @@
 """The base client for lokate"""
 
+import os
 from collections.abc import AsyncGenerator, Generator
-from typing import Any
+from typing import Annotated, Any, Self
 
+from arkitekt_spec.declare.client import client
+from arkitekt_spec.declare.tested import tested_against
+from arkitekt_spec.declare.wiring import Alias, Require, TokenLoader
 from koil import unkoil, unkoil_gen
 from koil.composition import Composition
 from pydantic import Field
@@ -13,7 +17,16 @@ from rath.turms.funcs import TOperation
 from lokate.api.schema import LokateApi
 from lokate.rath import LokateRath
 
+TESTED = tested_against("lokate")
+"""The lokate server this release wants: the one its release job tested it against."""
 
+_API = os.path.join(os.path.dirname(__file__), "api")
+
+
+@client(
+    schema=os.path.join(_API, "schema.graphql"),
+    turms=os.path.join(_API, "project.json"),
+)
 class Lokate(Composition, LokateApi):
     """Lokate
 
@@ -30,6 +43,49 @@ class Lokate(Composition, LokateApi):
         ...,
         description="The Rath client used to interact with the Lokate API.",
     )
+
+    @classmethod
+    def from_fakts(
+        cls,
+        lokate: Annotated[
+            Alias,
+            Require(
+                "live.arkitekt.lokate",
+                "Where the backed-up location timeline is kept",
+                version=TESTED,
+            ),
+        ],
+        tokens: TokenLoader,
+    ) -> Self:
+        """Built by a run: talks to the resolved lokate."""
+        from fakts.contrib.rath.auth import FaktsAuthLink
+        from rath.links.aiohttp import AIOHttpLink
+        from rath.links.compose import compose
+        from rath.links.graphql_ws import GraphQLWSLink
+        from rath.links.split import SplitLink
+
+        from graphql import OperationType
+
+        return cls(
+            rath=LokateRath(
+                link=compose(
+                    FaktsAuthLink(token_loader=tokens),
+                    SplitLink(
+                        left=AIOHttpLink(
+                            endpoint_url=lokate.to_http_path("graphql"),
+                            proxy=lokate.proxy,
+                            ssl_context=lokate.ssl_context(),
+                        ),
+                        right=GraphQLWSLink(
+                            ws_endpoint_url=lokate.to_ws_path("graphql"),
+                            proxy=lokate.proxy,
+                            ssl_context=lokate.ssl_context(),
+                        ),
+                        split=lambda o: o.node.operation != OperationType.SUBSCRIPTION,
+                    ),
+                ),
+            ),
+        )
 
     @staticmethod
     def _serialize(
